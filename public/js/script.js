@@ -75,7 +75,128 @@ const data = {
     ]
 }
 
-const productList = document.getElementById("product-list")
-const productDetails = document.getElementById("product-details")
-const search = document.querySelector("#search")
-const category = document.querySelector("#category")
+const productList = document.getElementById("product-list");
+const productDetails = document.getElementById("product-details");
+const search = document.querySelector("#search");
+const category = document.querySelector("#category");
+
+function formatPrice(preco) {
+    return (`R$ ${preco}`);
+}
+
+function createProductCard(produto) {
+    const card = document.createElement("div");
+    card.setAttribute("data-id", produto.id);
+    card.classList.add("card");
+    card.style.border = "1px solid #000000";
+
+    const titulo = document.createElement("h2");
+    titulo.textContent = produto.nome;
+    titulo.classList.add("card-title");
+    card.appendChild(titulo);
+
+    const precoEl = document.createElement("p");
+    precoEl.textContent = formatPrice(produto.preco);
+    precoEl.classList.add("card-price");
+    card.appendChild(precoEl);
+
+    const imagemEl = document.createElement("img");
+    imagemEl.setAttribute("src", produto.imagem);
+    imagemEl.setAttribute("alt", produto.nome);
+    imagemEl.classList.add("card-image");
+    card.appendChild(imagemEl);
+
+    const descricaoEl = document.createElement("p");
+    descricaoEl.textContent = produto.descricao;
+    descricaoEl.classList.add("card-description");
+    card.appendChild(descricaoEl);
+
+    const btnEl = document.createElement("button");
+    btnEl.textContent = "Ver detalhes";
+    btnEl.classList.add("card-btn");
+    card.appendChild(btnEl);
+
+    const btnDestacar = document.createElement("button");
+    btnDestacar.textContent = "Destacar";
+    btnDestacar.classList.add("card-btn-destacar");
+    card.appendChild(btnDestacar);
+
+    btnEl.addEventListener("click", () => {
+        showProductDetails(produto);
+    });
+
+    btnDestacar.addEventListener("click", () => {
+        card.classList.toggle("destaque");
+    });
+
+    return card;
+}
+
+function renderProducts(produtos) {
+    productList.innerHTML = "";
+    produtos.forEach(produto => {
+        const card = createProductCard(produto);
+        productList.appendChild(card);
+    });
+
+    document.querySelectorAll(".card").forEach(card => {
+        console.log("Card ID:", card.getAttribute("data-id"));
+        card.style.borderRadius = "8px";
+    });
+}
+
+function renderCategories() {
+    category.innerHTML = "";
+
+    const todas = document.createElement("option");
+    todas.textContent = "Todas";
+    todas.value = "todas";
+    category.appendChild(todas);
+
+    const categorias = new Set(data.produtos.map(produto => produto.categoria));
+    categorias.forEach(categoria => {
+        const filtro = document.createElement("option");
+        filtro.textContent = categoria;
+        filtro.value = categoria;  
+        category.appendChild(filtro);
+    })
+}
+
+function showProductDetails(produto) {
+    productDetails.innerHTML = `
+        <h2>${produto.nome}</h2>
+        <p>Preço: ${formatPrice(produto.preco)}</p>
+        <p>Categoria: ${produto.categoria}</p>
+        <p>Em estoque: ${produto.emEstoque ? "Sim" : "Não"}</p>
+        <p>Descrição: ${produto.descricao}</p>
+    `
+}
+
+function filterProducts() {
+    const textoBusca = search.value.toLowerCase();
+    const categoriaSelecionada = category.value;
+
+    return data.produtos.filter(produto => {
+        const nomeContem = produto.nome.toLowerCase().includes(textoBusca);
+        const categoriasBate = categoriaSelecionada === "todas" || produto.categoria === categoriaSelecionada;
+        return nomeContem && categoriasBate;
+    });
+}
+
+search.addEventListener("input", () => {
+    const produtosFiltrados = filterProducts();
+    renderProducts(produtosFiltrados);
+});
+
+category.addEventListener("change", () => {
+    const produtosFiltrados = filterProducts();
+    renderProducts(produtosFiltrados);
+});
+
+document.getElementById("BtnRender").addEventListener("click", () => {
+    const produtosFiltrados = filterProducts();
+    renderProducts(produtosFiltrados);
+});
+
+renderCategories();
+renderProducts(data.produtos);
